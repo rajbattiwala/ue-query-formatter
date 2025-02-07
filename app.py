@@ -93,5 +93,3 @@ def index():
             
     return render_template('index.html', formatted_sql=formatted_sql)
 
-if __name__ == '__main__':
-    app.run(debug=True)
