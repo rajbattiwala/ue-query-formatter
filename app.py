@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template
+from flask import Flask, render_template, request
 import sqlparse
 import re
 
@@ -68,22 +68,22 @@ def add_column_aliases(sql):
     
     return formatted_sql
 
-@app.route("/", methods=["GET", "POST"])
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    formatted_sql = ""
-    if request.method == "POST":
-        raw_sql = request.form["sql"]
-        # Format the SQL
-        formatted_sql = sqlparse.format(
-            raw_sql,
-            reindent=True,
-            keyword_case="upper",
-            indent_width=4
-        )
-        # Add column aliases only if checkbox is checked
-        if request.form.get("add_aliases"):
-            formatted_sql = add_column_aliases(formatted_sql)
-    return render_template("index.html", formatted_sql=formatted_sql)
-
-if __name__ == "__main__":
-    app.run(debug=True)
+    formatted_sql = None
+    if request.method == 'POST':
+        sql = request.form.get('sql', '')
+        add_aliases = request.form.get('add_aliases') == 'on'
+        
+        if sql:
+            if add_aliases:
+                formatted_sql = add_column_aliases(sql)
+            else:
+                formatted_sql = sqlparse.format(
+                    sql,
+                    reindent=True,
+                    keyword_case='upper',
+                    indent_width=4
+                )
+    
+    return render_template('index.html', formatted_sql=formatted_sql)
