@@ -1,9 +1,13 @@
+import os
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 import sqlparse
 import re
 
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    template_folder=os.path.join(os.path.dirname(__file__), "templates")
+)
 CORS(app)  # Enable CORS for all routes
 
 def add_column_aliases(sql):
@@ -92,4 +96,8 @@ def index():
             print(f"Error: {str(e)}")
             
     return render_template('index.html', formatted_sql=formatted_sql)
+
+# When running locally
+if __name__ == "__main__":
+    app.run(debug=True)
 
