@@ -8,8 +8,8 @@
     ],
     "routes": [
         {
-            "src": "/format",
-            "methods": ["POST"],
+            "src": "/api/format",
+            "methods": ["POST", "OPTIONS"],
             "dest": "app.py"
         },
         {

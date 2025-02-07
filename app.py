@@ -74,14 +74,22 @@ def add_column_aliases(sql):
 def index():
     return render_template('index.html')
 
-@app.route('/format', methods=['POST', 'OPTIONS'])
+@app.route('/api/format/', methods=['POST', 'OPTIONS'])
 def format_sql():
-    # Handle OPTIONS request for CORS
+    # Handle CORS preflight request
     if request.method == 'OPTIONS':
-        return '', 204
-        
+        headers = {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST',
+            'Access-Control-Allow-Headers': 'Content-Type'
+        }
+        return ('', 204, headers)
+
     try:
         data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+            
         sql = data.get('sql', '')
         add_aliases = data.get('add_aliases', False)
         
