@@ -529,16 +529,15 @@
             </div>
         </div>
         
-        <form method="POST" class="mb-4">
+        <form method="POST" action="/">
             <div class="mb-3">
                 <label for="sql" class="form-label">Enter your SQL query:</label>
-                <textarea class="form-control" id="sql" name="sql" rows="5" required>{{ request.form['sql'] }}</textarea>
+                <textarea class="form-control" id="sql" name="sql" rows="5" required></textarea>
             </div>
             
-            <div class="form-check mb-3">
-                <input class="form-check-input" type="checkbox" name="add_aliases" id="add_aliases" 
-                       {% if request.form.get('add_aliases') %}checked{% endif %}>
-                <label class="form-check-label" for="add_aliases">
+            <div class="checkbox-wrapper">
+                <input type="checkbox" id="add_aliases" name="add_aliases">
+                <label for="add_aliases">
                     Add column aliases (e.g., table_column)
                 </label>
             </div>
@@ -623,52 +622,6 @@
                 });
             }
         });
-
-        async function formatSQL() {
-            const sqlInput = document.getElementById('sql').value;
-            const addAliases = document.getElementById('add_aliases').checked;
-            
-            if (!sqlInput.trim()) {
-                alert('Please enter a SQL query');
-                return;
-            }
-
-            try {
-                const response = await fetch('/api/format/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        sql: sqlInput,
-                        add_aliases: addAliases
-                    })
-                });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
-                }
-
-                const data = await response.json();
-                
-                if (data.error) {
-                    alert('Error: ' + data.error);
-                    return;
-                }
-
-                const outputContainer = document.getElementById('output-container');
-                const formattedElement = document.getElementById('formatted-sql');
-                formattedElement.textContent = data.formatted_sql;
-                
-                outputContainer.style.display = 'block';
-                Prism.highlightElement(formattedElement);
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error formatting SQL: ' + error.message);
-            }
-        }
     </script>
 
     <!-- Add these before closing body tag, after existing Prism.js scripts -->

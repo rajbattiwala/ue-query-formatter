@@ -70,45 +70,28 @@ def add_column_aliases(sql):
     
     return formatted_sql
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    return render_template('index.html')
-
-@app.route('/api/format/', methods=['POST', 'OPTIONS'])
-def format_sql():
-    # Handle CORS preflight request
-    if request.method == 'OPTIONS':
-        headers = {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'POST',
-            'Access-Control-Allow-Headers': 'Content-Type'
-        }
-        return ('', 204, headers)
-
-    try:
-        data = request.get_json()
-        if not data:
-            return jsonify({'error': 'No data provided'}), 400
+    formatted_sql = None
+    if request.method == 'POST':
+        try:
+            sql = request.form.get('sql', '')
+            add_aliases = request.form.get('add_aliases') == 'on'
             
-        sql = data.get('sql', '')
-        add_aliases = data.get('add_aliases', False)
-        
-        if not sql:
-            return jsonify({'error': 'No SQL provided'}), 400
-        
-        if add_aliases:
-            formatted_sql = add_column_aliases(sql)
-        else:
-            formatted_sql = sqlparse.format(
-                sql,
-                reindent=True,
-                keyword_case='upper',
-                indent_width=4
-            )
-        
-        return jsonify({'formatted_sql': formatted_sql})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+            if sql:
+                if add_aliases:
+                    formatted_sql = add_column_aliases(sql)
+                else:
+                    formatted_sql = sqlparse.format(
+                        sql,
+                        reindent=True,
+                        keyword_case='upper',
+                        indent_width=4
+                    )
+        except Exception as e:
+            print(f"Error: {str(e)}")
+            
+    return render_template('index.html', formatted_sql=formatted_sql)
 
 if __name__ == '__main__':
     app.run(debug=True)

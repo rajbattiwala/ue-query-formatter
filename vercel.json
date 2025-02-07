@@ -8,17 +8,8 @@
     ],
     "routes": [
         {
-            "src": "/api/format",
-            "methods": ["POST", "OPTIONS"],
-            "dest": "app.py"
-        },
-        {
             "src": "/(.*)",
             "dest": "app.py"
         }
-    ],
-    "env": {
-        "FLASK_ENV": "production",
-        "FLASK_APP": "app.py"
-    }
+    ]
 }
