@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 import sqlparse
 import re
 
@@ -68,22 +68,33 @@ def add_column_aliases(sql):
     
     return formatted_sql
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/')
 def index():
-    formatted_sql = None
-    if request.method == 'POST':
-        sql = request.form.get('sql', '')
-        add_aliases = request.form.get('add_aliases') == 'on'
+    return render_template('index.html')
+
+@app.route('/format', methods=['POST'])
+def format_sql():
+    try:
+        data = request.get_json()
+        sql = data.get('sql', '')
+        add_aliases = data.get('add_aliases', False)
         
-        if sql:
-            if add_aliases:
-                formatted_sql = add_column_aliases(sql)
-            else:
-                formatted_sql = sqlparse.format(
-                    sql,
-                    reindent=True,
-                    keyword_case='upper',
-                    indent_width=4
-                )
-    
-    return render_template('index.html', formatted_sql=formatted_sql)
+        if not sql:
+            return jsonify({'error': 'No SQL provided'}), 400
+        
+        if add_aliases:
+            formatted_sql = add_column_aliases(sql)
+        else:
+            formatted_sql = sqlparse.format(
+                sql,
+                reindent=True,
+                keyword_case='upper',
+                indent_width=4
+            )
+        
+        return jsonify({'formatted_sql': formatted_sql})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+if __name__ == '__main__':
+    app.run(debug=True)

@@ -636,6 +636,45 @@
                 });
             }
         });
+
+        async function formatSQL() {
+            const sqlInput = document.getElementById('sql').value;
+            const addAliases = document.getElementById('add_aliases').checked;
+            
+            if (!sqlInput.trim()) {
+                alert('Please enter a SQL query');
+                return;
+            }
+
+            try {
+                const response = await fetch('/format', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        sql: sqlInput,
+                        add_aliases: addAliases
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                    return;
+                }
+
+                const outputContainer = document.getElementById('output-container');
+                const formattedElement = document.getElementById('formatted-sql');
+                formattedElement.textContent = data.formatted_sql;
+                
+                outputContainer.style.display = 'block';
+                Prism.highlightElement(formattedElement);
+            } catch (error) {
+                alert('Error formatting SQL: ' + error.message);
+            }
+        }
     </script>
 
     <!-- Add these before closing body tag, after existing Prism.js scripts -->
