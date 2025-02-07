@@ -651,12 +651,17 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
                     body: JSON.stringify({
                         sql: sqlInput,
                         add_aliases: addAliases
                     })
                 });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
 
                 const data = await response.json();
                 
@@ -672,6 +677,7 @@
                 outputContainer.style.display = 'block';
                 Prism.highlightElement(formattedElement);
             } catch (error) {
+                console.error('Error:', error);
                 alert('Error formatting SQL: ' + error.message);
             }
         }

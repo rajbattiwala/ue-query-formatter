@@ -8,6 +8,11 @@
     ],
     "routes": [
         {
+            "src": "/format",
+            "methods": ["POST"],
+            "dest": "app.py"
+        },
+        {
             "src": "/(.*)",
             "dest": "app.py"
         }

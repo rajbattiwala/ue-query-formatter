@@ -1,8 +1,10 @@
 from flask import Flask, render_template, request, jsonify
+from flask_cors import CORS
 import sqlparse
 import re
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 
 def add_column_aliases(sql):
     """
@@ -72,8 +74,12 @@ def add_column_aliases(sql):
 def index():
     return render_template('index.html')
 
-@app.route('/format', methods=['POST'])
+@app.route('/format', methods=['POST', 'OPTIONS'])
 def format_sql():
+    # Handle OPTIONS request for CORS
+    if request.method == 'OPTIONS':
+        return '', 204
+        
     try:
         data = request.get_json()
         sql = data.get('sql', '')
