@@ -1,87 +1,60 @@
 import os
-from flask import Flask, render_template, request, jsonify
-from flask_cors import CORS
+from flask import Flask, render_template, request
 import sqlparse
 import re
 
+# Ensure Flask can find the "templates" folder.
 app = Flask(
     __name__,
     template_folder=os.path.join(os.path.dirname(__file__), "templates")
 )
-CORS(app)  # Enable CORS for all routes
 
 def add_column_aliases(sql):
     """
-    Adds aliases to columns in the main SELECT statement.
+    An example function that adds column aliases.
+    This simple implementation uses regex to replace the SELECT clause.
+    Modify this logic as needed for your use case.
     """
-    # First, standardize the SQL
-    sql = sqlparse.format(sql, strip_comments=True)
+    # A simple pattern for demonstration; adjust as necessary.
+    pattern = r"(\bSELECT\b)([\s\S]*?)(\bFROM\b)"
     
-    if sql.upper().strip().startswith('WITH'):
-        # Find the main SELECT statement after all CTEs
-        pattern = r'(\)\s*SELECT\s*)([\s\S]*?)(\s*FROM\s*)'
-        match = re.search(pattern, sql, re.IGNORECASE)
-        
-        if match:
-            before_select = sql[:match.start(1)]
-            select_columns = match.group(2)
-            after_from = sql[match.end(2):]
-            
-            # Process the columns
-            columns = [col.strip() for col in select_columns.split(',')]
-            formatted_columns = []
-            
-            for col in columns:
-                # Skip if column already has an alias
-                if ' AS ' in col.upper():
-                    formatted_columns.append(col)
-                    continue
-                    
-                # Skip if it's a function
-                if any(col.upper().startswith(func + '(') for func in ['COUNT', 'SUM', 'AVG', 'MAX', 'MIN', 'STRING_AGG', 'DATE_TRUNC', 'RANK']):
-                    formatted_columns.append(col)
-                    continue
-                    
-                # Process regular table columns
-                if '.' in col:
-                    table_alias, column_name = col.split('.')
-                    formatted_columns.append(
-                        f"{table_alias}.{column_name} AS {table_alias}_{column_name}"
-                    )
+    def add_aliases(match):
+        columns_part = match.group(2)
+        columns = columns_part.split(",")
+        new_columns = []
+        for col in columns:
+            col_stripped = col.strip()
+            # If already has an alias (contains "AS"), leave it unchanged
+            if " AS " in col_stripped.upper():
+                new_columns.append(col_stripped)
+            elif "." in col_stripped:
+                parts = col_stripped.split(".")
+                if len(parts) == 2:
+                    alias = f"{parts[0]}_{parts[1]}"
+                    new_columns.append(f"{col_stripped} AS {alias}")
                 else:
-                    formatted_columns.append(col)
-            
-            # Reconstruct the query
-            final_sql = (
-                before_select + 
-                ')\nSELECT\n    ' + 
-                ',\n    '.join(formatted_columns) + 
-                '\nFROM' + 
-                after_from
-            )
-        else:
-            final_sql = sql
-    else:
-        final_sql = sql
+                    new_columns.append(col_stripped)
+            else:
+                new_columns.append(col_stripped)
+        new_columns_str = ", ".join(new_columns)
+        return f"SELECT {new_columns_str} FROM"
     
-    # Final formatting
     formatted_sql = sqlparse.format(
-        final_sql,
+        sql,
         reindent=True,
-        keyword_case='upper',
+        keyword_case="upper",
         indent_width=4
     )
-    
-    return formatted_sql
+    result = re.sub(pattern, add_aliases, formatted_sql, flags=re.IGNORECASE)
+    return result
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route("/", methods=["GET", "POST"])
 def index():
     formatted_sql = None
-    if request.method == 'POST':
+    if request.method == "POST":
         try:
-            sql = request.form.get('sql', '')
-            add_aliases = request.form.get('add_aliases') == 'on'
-            
+            sql = request.form.get("sql", "")
+            add_aliases = request.form.get("add_aliases") == "on"
             if sql:
                 if add_aliases:
                     formatted_sql = add_column_aliases(sql)
@@ -89,15 +62,13 @@ def index():
                     formatted_sql = sqlparse.format(
                         sql,
                         reindent=True,
-                        keyword_case='upper',
+                        keyword_case="upper",
                         indent_width=4
                     )
         except Exception as e:
-            print(f"Error: {str(e)}")
-            
-    return render_template('index.html', formatted_sql=formatted_sql)
+            formatted_sql = f"Error: {e}"
+    return render_template("index.html", formatted_sql=formatted_sql)
 
-# When running locally
 if __name__ == "__main__":
     app.run(debug=True)
 
