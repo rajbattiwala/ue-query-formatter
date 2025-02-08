@@ -3,7 +3,7 @@ from flask import Flask, render_template, request
 import sqlparse
 import re
 
-# Ensure Flask can find the "templates" folder.
+# Ensure Flask locates the "templates" folder correctly
 app = Flask(
     __name__,
     template_folder=os.path.join(os.path.dirname(__file__), "templates")
@@ -11,11 +11,10 @@ app = Flask(
 
 def add_column_aliases(sql):
     """
-    An example function that adds column aliases.
-    This simple implementation uses regex to replace the SELECT clause.
-    Modify this logic as needed for your use case.
+    Example function that adds column aliases.
+    You can adjust this logic as needed.
     """
-    # A simple pattern for demonstration; adjust as necessary.
+    # This pattern is just for demonstration; adjust as needed.
     pattern = r"(\bSELECT\b)([\s\S]*?)(\bFROM\b)"
     
     def add_aliases(match):
@@ -24,9 +23,10 @@ def add_column_aliases(sql):
         new_columns = []
         for col in columns:
             col_stripped = col.strip()
-            # If already has an alias (contains "AS"), leave it unchanged
+            # If column already has an alias, leave unchanged.
             if " AS " in col_stripped.upper():
                 new_columns.append(col_stripped)
+            # Otherwise, if column contains a dot, add an alias.
             elif "." in col_stripped:
                 parts = col_stripped.split(".")
                 if len(parts) == 2:
