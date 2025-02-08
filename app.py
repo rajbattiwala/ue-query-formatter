@@ -3,18 +3,18 @@ from flask import Flask, render_template, request
 import sqlparse
 import re
 
-# Ensure Flask locates the "templates" folder correctly
+# Configure Flask with explicit static & template folders.
 app = Flask(
     __name__,
-    template_folder=os.path.join(os.path.dirname(__file__), "templates")
+    static_folder="static",
+    template_folder="templates"
 )
 
 def add_column_aliases(sql):
     """
     Example function that adds column aliases.
-    You can adjust this logic as needed.
+    Adjust the implementation as needed.
     """
-    # This pattern is just for demonstration; adjust as needed.
     pattern = r"(\bSELECT\b)([\s\S]*?)(\bFROM\b)"
     
     def add_aliases(match):
@@ -23,10 +23,8 @@ def add_column_aliases(sql):
         new_columns = []
         for col in columns:
             col_stripped = col.strip()
-            # If column already has an alias, leave unchanged.
             if " AS " in col_stripped.upper():
                 new_columns.append(col_stripped)
-            # Otherwise, if column contains a dot, add an alias.
             elif "." in col_stripped:
                 parts = col_stripped.split(".")
                 if len(parts) == 2:
@@ -69,10 +67,10 @@ def index():
             formatted_sql = f"Error: {e}"
     return render_template("index.html", formatted_sql=formatted_sql)
 
-# Optional: Handle favicon requests to avoid 404 errors in the browser console.
+# Route to serve favicon (prevents 404 in the browser console)
 @app.route("/favicon.ico")
 def favicon():
-    return "", 204
+    return app.send_static_file("favicon.ico")
 
 if __name__ == "__main__":
     app.run(debug=True)
