@@ -69,6 +69,11 @@ def index():
             formatted_sql = f"Error: {e}"
     return render_template("index.html", formatted_sql=formatted_sql)
 
+# Optional: Handle favicon requests to avoid 404 errors in the browser console.
+@app.route("/favicon.ico")
+def favicon():
+    return "", 204
+
 if __name__ == "__main__":
     app.run(debug=True)
 
